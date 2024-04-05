@@ -9,7 +9,9 @@ import (
 )
 
 // HostPort returns whether addr includes a port number (i.e.,
-// is of the form HOST:PORT).
+// is of the form HOST:PORT).  It handles a corner-case in [net.SplitHostPort]
+// which returns an empty port for addresses of the form "1.2.3.4:".  For such
+// addresses, HasPort returns false.
 func HasPort(addr string) bool {
 	_, port, err := net.SplitHostPort(addr)
 	if err != nil {
@@ -25,19 +27,17 @@ func HasPort(addr string) bool {
 	return true
 }
 
-// TryAddPort checks whether the server string already has a port (i.e.,
-// ends with ':<PORT>'.  If it does, thn the function simply returns
+// TryJoinHostPort checks whether the server string already has a port (i.e.,
+// ends with ':<PORT>'.  If it does, then the function simply returns
 // that string.  If it does not, it returns the server string with
 // the port appended.
-func TryAddPort(server string, port string) string {
+func TryJoinHostPort(server string, port string) string {
 	if HasPort(server) {
 		return server
 	}
 
-	// deal with corner-case of, e.g., "1.2.3.4:".  In this case,
-	// strip off the the trailing ":".
 	sanitized := server
-	if strings.HasSuffix(server, ":") {
+	if strings.HasSuffix(server, ":") && !strings.HasSuffix(server, "::") {
 		sanitized = server[:len(server)-1]
 	}
 

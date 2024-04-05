@@ -24,7 +24,7 @@ func TestHasPort(t *testing.T) {
 	}
 }
 
-func TestTryAddPort(t *testing.T) {
+func TestTryJoinHostPort(t *testing.T) {
 	data := []struct {
 		server   string // also the name of the test
 		port     string
@@ -37,9 +37,53 @@ func TestTryAddPort(t *testing.T) {
 
 	for _, d := range data {
 		t.Run(d.server, func(t *testing.T) {
-			got := TryAddPort(d.server, d.port)
+			got := TryJoinHostPort(d.server, d.port)
 			if got != d.expected {
 				t.Errorf("expected %s, got %s", d.expected, got)
+			}
+		})
+	}
+}
+
+func TestIsIPv4(t *testing.T) {
+	data := []struct {
+		s        string // also the name of the test
+		expected bool
+	}{
+		{"1.2.3.4", true},
+		{"127.0.0.1", true},
+		{"::1", false},
+		{"::ffff:192.0.2.128", false},
+		{"2001:db8::1", false},
+	}
+
+	for _, d := range data {
+		t.Run(d.s, func(t *testing.T) {
+			got := IsIPv4(d.s)
+			if got != d.expected {
+				t.Errorf("expected %t, got %t", d.expected, got)
+			}
+		})
+	}
+}
+
+func TestIsIPv6(t *testing.T) {
+	data := []struct {
+		s        string // also the name of the test
+		expected bool
+	}{
+		{"1.2.3.4", false},
+		{"127.0.0.1", false},
+		{"::1", true},
+		{"::ffff:192.0.2.128", true},
+		{"2001:db8::1", true},
+	}
+
+	for _, d := range data {
+		t.Run(d.s, func(t *testing.T) {
+			got := IsIPv6(d.s)
+			if got != d.expected {
+				t.Errorf("expected %t, got %t", d.expected, got)
 			}
 		})
 	}
